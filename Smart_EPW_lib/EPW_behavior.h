@@ -21,5 +21,6 @@ int16_t ADC1ConvertedVoltage[2];
 /*===============end of define  the all by pins========================*/
 
 extern void parse_Joystick_dir();
-
+extern void detect_x_Tremor();
+extern void detect_y_Tremor();
 #endif /* __CAR_BEHAVIOR_H__ */

@@ -11,6 +11,7 @@
 #define PID_ADJUST 1
 #define RECORD_SIZE 750
 int tremor_count = 0;
+char w;
 char buff [] = "";
 
 /*============================================================================*/
@@ -106,24 +107,6 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 	{ //2305: 靜止x軸平均值, 2362: 靜止y軸平均值
 	if(ADC1ConvertedVoltage[1] >= 3000 && ADC1ConvertedVoltage[1] - 2362 > ADC1ConvertedVoltage[0] - 2305 && ADC1ConvertedVoltage[1] - 2362 > 2305 - ADC1ConvertedVoltage[0]){ //forward(3000~4095)
 		//if (data_sending != 1) /*&& car_state == CAR_STATE_IDLE) // Do not control the wheelchair when sending data with usart!
-			//{
-				/*Neural_Control*/
-				/*
-				controller_initialize(&n_r);
-				controller_initialize(&n_l);
-
-				if (last_state == CAR_STATE_MOVE_FORWARD)
-				{
-					neural_checkstop(&n_r);
-					neural_checkstop(&n_l);
-				}
-				if (last_state == CAR_STATE_MOVE_BACK)
-				{
-					neural_checkstop(&n_r_back);
-					neural_checkstop(&n_l_back);
-				}
-				car_state = CAR_STATE_MOVE_FORWARD;
-			}*/
 				//sprintf(buff, "forward");
                 //Usart3_Printf(buff); // send string to USART3
 
@@ -131,13 +114,30 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 				TIM_SetCompare1(TIM1, 256 - 1); 
 				TIM_SetCompare2(TIM1, 256 - 1);
 				TIM_SetCompare1(TIM3, 0);
-				TIM_SetCompare2(TIM3, 127); //minimum: 95
+				//TIM_SetCompare2(TIM3, 127); //minimum: 95
 				TIM_SetCompare3(TIM3, 0);
-				TIM_SetCompare4(TIM3, 127);
-				vTaskDelay(1200);
+				//TIM_SetCompare4(TIM3, 127);
+				//vTaskDelay(100);
+				//detect_x_Tremor();
 				//reset_Wheels();
 				//vTaskDelay(100);
-		    }
+
+				if(ADC1ConvertedVoltage[1] <= 3365){ //min_speed
+					TIM_SetCompare2(TIM3, 100);
+					TIM_SetCompare4(TIM3, 100);
+				}
+				else if(ADC1ConvertedVoltage[1] > 3365 && ADC1ConvertedVoltage[1] <= 3730){ //mid_speed
+					TIM_SetCompare2(TIM3, 178);
+					TIM_SetCompare4(TIM3, 178);
+				}
+				else if(ADC1ConvertedVoltage[1] > 3730){ //max_speed
+					TIM_SetCompare2(TIM3, 255);
+				    TIM_SetCompare4(TIM3, 255);
+		        }
+		        vTaskDelay(100);
+				detect_x_Tremor();
+			}
+
 		else if(ADC1ConvertedVoltage[0] < 3000 && ADC1ConvertedVoltage[1] < 3000 && ADC1ConvertedVoltage[0] > 1500 && ADC1ConvertedVoltage[1] > 1500){  //stop
 				//car_state = CAR_STATE_STOPPING;
 			//sprintf(buff, "stop");
@@ -148,109 +148,127 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 			TIM_SetCompare2(TIM3, 0);
 			TIM_SetCompare3(TIM3, 0);
 			TIM_SetCompare4(TIM3, 0);
-			vTaskDelay(1200);
+			vTaskDelay(100);
 			//reset_Wheels();
 			//vTaskDelay(100);
 		}
 		else if(/*data_sending != 1 && */ADC1ConvertedVoltage[1] <= 1500 && 2362 - ADC1ConvertedVoltage[1] > 2305 - ADC1ConvertedVoltage[0] && 2362 - ADC1ConvertedVoltage[1] > ADC1ConvertedVoltage[0] - 2305){  //backward(1500~0)
-			/*if(car_state == CAR_STATE_IDLE){
-				controller_initialize(&n_r_back);
-				controller_initialize(&n_l_back);
-
-				if (last_state == CAR_STATE_MOVE_FORWARD)
-				{
-					neural_checkstop(&n_r);
-					neural_checkstop(&n_l);
-				}
-				if (last_state == CAR_STATE_MOVE_BACK)
-				{
-					neural_checkstop(&n_r_back);
-					neural_checkstop(&n_l_back);
-				}
-				car_state = CAR_STATE_MOVE_BACK;
-            }*/
 				//sprintf(buff, "backward");
                 //Usart3_Printf(buff); // send string to USART3
 				TIM_SetCompare1(TIM1, 256 - 1);
 				TIM_SetCompare2(TIM1, 256 - 1);
-				TIM_SetCompare1(TIM3, 127);
+				//TIM_SetCompare1(TIM3, 127);
 				TIM_SetCompare2(TIM3, 0);
-				TIM_SetCompare3(TIM3, 127);
+				//TIM_SetCompare3(TIM3, 127);
 				TIM_SetCompare4(TIM3, 0);
-				vTaskDelay(1200);
+				//vTaskDelay(100);
+				//detect_x_Tremor();
 				//reset_Wheels();
 				//vTaskDelay(100);
+				if(ADC1ConvertedVoltage[1] > 1000){
+					TIM_SetCompare1(TIM3, 100);
+					TIM_SetCompare3(TIM3, 100);
+				}
+				else if(ADC1ConvertedVoltage[1] > 500 && ADC1ConvertedVoltage[1] <= 1000){
+					TIM_SetCompare1(TIM3, 178);
+					TIM_SetCompare3(TIM3, 178);
+				}
+				else if(ADC1ConvertedVoltage[1] <= 500){
+					TIM_SetCompare1(TIM3, 255);
+					TIM_SetCompare3(TIM3, 255);
+				}
+				vTaskDelay(100);
+				detect_x_Tremor();
 		}
         else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] >= 3000 && ADC1ConvertedVoltage[0] - 2305 > ADC1ConvertedVoltage[1] - 2362 && ADC1ConvertedVoltage[0] -2305 > 2362 - ADC1ConvertedVoltage[1]){  //left(3000~4095)
-        	/*if(car_state == CAR_STATE_IDLE){
-				controller_initialize(&n_r);
-				controller_initialize(&n_l_back);
-
-				if (last_state == CAR_STATE_MOVE_FORWARD)
-				{
-					neural_checkstop(&n_r);
-					neural_checkstop(&n_l);
-				}
-				if (last_state == CAR_STATE_MOVE_BACK)
-				{
-					neural_checkstop(&n_r_back);
-					neural_checkstop(&n_l_back);
-				}
-
-                car_state = CAR_STATE_MOVE_LEFT;
-            }*/
                 //sprintf(buff, "left");
                 //Usart3_Printf(buff); // send string to USART3
                 TIM_SetCompare1(TIM1, 256 - 1);
 				TIM_SetCompare2(TIM1, 256 - 1);
-                TIM_SetCompare1(TIM3, 127);
+                //TIM_SetCompare1(TIM3, 127);
                 TIM_SetCompare2(TIM3, 0);
                 TIM_SetCompare3(TIM3, 0);
-                TIM_SetCompare4(TIM3, 127);
-                vTaskDelay(1200);
+                //TIM_SetCompare4(TIM3, 127);
+                //vTaskDelay(100);
+                //detect_y_Tremor();
 				//reset_Wheels();
 				//vTaskDelay(100);
+				if(ADC1ConvertedVoltage[0] <= 3365){ //min_speed
+					TIM_SetCompare1(TIM3, 100);
+					TIM_SetCompare4(TIM3, 100);
+				}
+				else if(ADC1ConvertedVoltage[0] > 3365 && ADC1ConvertedVoltage[1] <= 3730){ //mid_speed
+					TIM_SetCompare1(TIM3, 178);
+					TIM_SetCompare4(TIM3, 178);
+				}
+				else if(ADC1ConvertedVoltage[0] > 3730){ //max_speed
+					TIM_SetCompare1(TIM3, 255);
+				    TIM_SetCompare4(TIM3, 255);
+		        }
+		        vTaskDelay(100);
+				detect_y_Tremor();
 		}
         else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] <= 1500 && 2305 - ADC1ConvertedVoltage[0] > 2362 - ADC1ConvertedVoltage[1] && 2305 - ADC1ConvertedVoltage[0] > ADC1ConvertedVoltage[1] - 2362){  //right(1500~0)
-        	/*if(car_state == CAR_STATE_IDLE){
-				controller_initialize(&n_r_back);
-				controller_initialize(&n_l);
-
-				if (last_state == CAR_STATE_MOVE_FORWARD)
-				{
-					neural_checkstop(&n_r);
-					neural_checkstop(&n_l);
-				}
-				if (last_state == CAR_STATE_MOVE_BACK)
-				{
-					neural_checkstop(&n_r_back);
-					neural_checkstop(&n_l_back);
-				}
-
-                car_state = CAR_STATE_MOVE_RIGHT;
-            }*/
                 //sprintf(buff, "right");
                 //Usart3_Printf(buff); // send string to USART3
                 TIM_SetCompare1(TIM1, 256 - 1);
 				TIM_SetCompare2(TIM1, 256 - 1);
                 TIM_SetCompare1(TIM3, 0);
-                TIM_SetCompare2(TIM3, 127);
-                TIM_SetCompare3(TIM3, 127);
+                //TIM_SetCompare2(TIM3, 127);
+                //TIM_SetCompare3(TIM3, 127);
                 TIM_SetCompare4(TIM3, 0);
-                vTaskDelay(1200);
+                //vTaskDelay(100);
+                //detect_y_Tremor();
 				//reset_Wheels();
 				//vTaskDelay(100);
-		}/*
-		else if(((ADC1ConvertedVoltage[0] <= 2200 && ADC1ConvertedVoltage[0] >= 1975) || (ADC1ConvertedVoltage[0] >= 2350 && ADC1ConvertedVoltage[0] <= 2555)) || 
+				if(ADC1ConvertedVoltage[0] > 1000){
+					TIM_SetCompare2(TIM3, 100);
+					TIM_SetCompare3(TIM3, 100);
+				}
+				else if(ADC1ConvertedVoltage[0] > 500 && ADC1ConvertedVoltage[1] <= 1000){
+					TIM_SetCompare2(TIM3, 178);
+					TIM_SetCompare3(TIM3, 178);
+				}
+				else if(ADC1ConvertedVoltage[0] <= 500){
+					TIM_SetCompare2(TIM3, 255);
+					TIM_SetCompare3(TIM3, 255);
+				}
+				vTaskDelay(100);
+				detect_y_Tremor();
+		}
+		/*Detect the tremor and send a warning to android*/
+		/*else if(((ADC1ConvertedVoltage[0] <= 2200 && ADC1ConvertedVoltage[0] >= 1975) || (ADC1ConvertedVoltage[0] >= 2350 && ADC1ConvertedVoltage[0] <= 2555)) || 
 	            ((ADC1ConvertedVoltage[1] <= 2335 && ADC1ConvertedVoltage[1] >= 2239) || (ADC1ConvertedVoltage[1] >= 2380 && ADC1ConvertedVoltage[1] <= 2480))){
 			tremor_count ++;
 		    if(tremor_count > 20){
 		    	char w;
-		    	USART_SendData(USARTy, w); //send a warning of tremor to android
+		    	while(USART_GetFlagStatus(USARTy, USART_FLAG_TXE) == RESET);
+		    	USART_SendData(USARTy, 'w'); //send a warning of tremor to android
 		    	tremor_count = 0;
+		    	vTaskDelay(1);
 		    }
 		} */
 		else{
 		}
+		send_Tremor_Warning();
  }
+}
+
+void detect_x_Tremor(){
+	if((ADC1ConvertedVoltage[0] <= 2200 && ADC1ConvertedVoltage[0] >= 1975) || (ADC1ConvertedVoltage[0] >= 2350 && ADC1ConvertedVoltage[0] <= 2555))
+		tremor_count ++;
+}
+
+void detect_y_Tremor(){
+	if((ADC1ConvertedVoltage[1] <= 2335 && ADC1ConvertedVoltage[1] >= 2239) || (ADC1ConvertedVoltage[1] >= 2380 && ADC1ConvertedVoltage[1] <= 2480))
+		tremor_count ++;
+}
+
+void send_Tremor_Warning(){
+	if(tremor_count > 20){
+			while(USART_GetFlagStatus(USARTy, USART_FLAG_TXE) == RESET);
+			USART_SendData(USARTy, 'w');
+			tremor_count = 0;
+			vTaskDelay(1);
+		}
 }
