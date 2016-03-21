@@ -6,8 +6,8 @@
 void init_Wheels() {
     GPIO_InitTypeDef GPIO_InitStructure;
 
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); //portA enable
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE); // portC enable
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE); //portC enable
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); // portA enable
 
     GPIO_InitStructure.GPIO_Pin = Wheels | EnableWheels;  // PC6,7,8,9 | PA8,9
     //GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;
@@ -16,8 +16,8 @@ void init_Wheels() {
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //push/pull configuration
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //  pull up resistor
    
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-    GPIO_Init(GPIOC, &GPIO_InitStructure);   
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);   
 
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_TIM3); //PC6(TIM3_Ch1)
     GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_TIM3); //PC7(TIM3_CH2)

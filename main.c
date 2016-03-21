@@ -72,6 +72,7 @@ int main(void) {
     int count;
     char buff_x [] = "";
     char buff_y [] = "";
+    char buff_w [] = "";
     char buf[20];
     int Working_Time = 50000;
     int Work_Count = 0;
@@ -82,11 +83,11 @@ int main(void) {
 
         //init_linear_actuator();
         init_ADC();
-        init_Wheels();
-        init_Timer();
-        init_PWM();
         ADC_SoftwareStartConv(ADC1);
-
+        init_Timer();
+        init_Wheels();
+        init_PWM();
+//when running while(1), it'll stuck in the while loop instead of running FreeRTOS's task
         /*while (1)
         {
             sprintf(buff_x, "ADC_x: %d\n\r", ADC1ConvertedVoltage[0]);
@@ -111,7 +112,8 @@ int main(void) {
 		//ret = xTaskCreate(neural_task, "neural PID update task", 8192 /*configMINIMAL_STACK_SIZE*/, NULL, 2, NULL);
         //ret &= xTaskCreate(receive_task, "receive command task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 3, NULL);
         //ret &= xTaskCreate(send_data_task, "send data task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
-        ret &= xTaskCreate(parse_Joystick_dir, ( signed char * ) "parse Joystick direction", configMINIMAL_STACK_SIZE,NULL, 1, NULL);
+        ret = xTaskCreate(parse_Joystick_dir, ( signed portCHAR * ) "parse Joystick direction", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+        //ret &= xTaskCreate(send_Tremor_Warning, (signed portCHAR *) "send_Tremor_Warning", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 		//ret &= xTaskCreate(send_out_task, "send out information task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		//if (ret == pdTRUE) {
 				//printf("All tasks are created.\r\n");
@@ -122,9 +124,9 @@ int main(void) {
 				// --TODO blink some LEDs to indicates fatal system error
 		//}
 
-		//for (;;);
+		for (;;);
 
-        return 0;
+        //return 0;
 }
 
 

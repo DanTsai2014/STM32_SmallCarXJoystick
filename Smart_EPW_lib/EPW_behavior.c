@@ -3,6 +3,7 @@
 #include "stm32f4xx_syscfg.h"
 #include "EPW_behavior.h"
 #include "timers.h"
+#include "stm32f4xx_usart.h"
 #include "uart.h"
 #include "PWM.h"
 
@@ -10,7 +11,6 @@
 #define NEURAL_IDENTIFIER 1
 #define PID_ADJUST 1
 #define RECORD_SIZE 750
-int tremor_count = 0;
 char w;
 char buff [] = "";
 
@@ -101,13 +101,16 @@ void init_ADC(void){
  **============================================================================*/
 /*============================================================================*/
 
-void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
+void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 {
 	while(1)
 	{ //2305: 靜止x軸平均值, 2362: 靜止y軸平均值
-	if(ADC1ConvertedVoltage[1] >= 3000 && ADC1ConvertedVoltage[1] - 2362 > ADC1ConvertedVoltage[0] - 2305 && ADC1ConvertedVoltage[1] - 2362 > 2305 - ADC1ConvertedVoltage[0]){ //forward(3000~4095)
+	if(ADC1ConvertedVoltage[1] >= 3000 && ADC1ConvertedVoltage[1] - 2371 > ADC1ConvertedVoltage[0] - 2278 && ADC1ConvertedVoltage[1] - 2371 > 2278 - ADC1ConvertedVoltage[0]){ //forward(3000~4095)
+		Joy_dir = 1;
+		//detect_x_Tremor();
+		//send_Tremor_Warning();
 		//if (data_sending != 1) /*&& car_state == CAR_STATE_IDLE) // Do not control the wheelchair when sending data with usart!
-				//sprintf(buff, "forward");
+				//sprintf(buff, "forward\n\r");
                 //Usart3_Printf(buff); // send string to USART3
 
 				//PWM_Control
@@ -123,24 +126,27 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 				//vTaskDelay(100);
 
 				if(ADC1ConvertedVoltage[1] <= 3365){ //min_speed
-					TIM_SetCompare2(TIM3, 100);
+					TIM_SetCompare2(TIM3, 100);//min_speed
 					TIM_SetCompare4(TIM3, 100);
 				}
-				else if(ADC1ConvertedVoltage[1] > 3365 && ADC1ConvertedVoltage[1] <= 3730){ //mid_speed
-					TIM_SetCompare2(TIM3, 178);
+				else if(ADC1ConvertedVoltage[1] > 3365 && ADC1ConvertedVoltage[1] <= 3730){ 
+					TIM_SetCompare2(TIM3, 178);//mid_speed
 					TIM_SetCompare4(TIM3, 178);
 				}
-				else if(ADC1ConvertedVoltage[1] > 3730){ //max_speed
-					TIM_SetCompare2(TIM3, 255);
+				else if(ADC1ConvertedVoltage[1] > 3730){ 
+					TIM_SetCompare2(TIM3, 255);//max_speed
 				    TIM_SetCompare4(TIM3, 255);
 		        }
 		        vTaskDelay(100);
-				detect_x_Tremor();
+		        //detect_x_Tremor();
+		        //send_Tremor_Warning();
 			}
 
 		else if(ADC1ConvertedVoltage[0] < 3000 && ADC1ConvertedVoltage[1] < 3000 && ADC1ConvertedVoltage[0] > 1500 && ADC1ConvertedVoltage[1] > 1500){  //stop
+			Joy_dir = 0;
 				//car_state = CAR_STATE_STOPPING;
-			//sprintf(buff, "stop");
+			//sprintf(buff, "stop\n\r");
+			//send_Tremor_Warning();
             //Usart3_Printf(buff); // send string to USART3
 			TIM_SetCompare1(TIM1, 0);
 			TIM_SetCompare2(TIM1, 0);
@@ -149,11 +155,15 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 			TIM_SetCompare3(TIM3, 0);
 			TIM_SetCompare4(TIM3, 0);
 			vTaskDelay(100);
+			//send_Tremor_Warning();
 			//reset_Wheels();
 			//vTaskDelay(100);
 		}
-		else if(/*data_sending != 1 && */ADC1ConvertedVoltage[1] <= 1500 && 2362 - ADC1ConvertedVoltage[1] > 2305 - ADC1ConvertedVoltage[0] && 2362 - ADC1ConvertedVoltage[1] > ADC1ConvertedVoltage[0] - 2305){  //backward(1500~0)
-				//sprintf(buff, "backward");
+		else if(/*data_sending != 1 && */ADC1ConvertedVoltage[1] <= 1500 && 2371 - ADC1ConvertedVoltage[1] > 2235 - ADC1ConvertedVoltage[0] && 2371 - ADC1ConvertedVoltage[1] > ADC1ConvertedVoltage[0] - 2235){  //backward(1500~0)
+				Joy_dir = 2;
+				//detect_x_Tremor();
+				//send_Tremor_Warning();
+				//sprintf(buff, "backward\n\r");
                 //Usart3_Printf(buff); // send string to USART3
 				TIM_SetCompare1(TIM1, 256 - 1);
 				TIM_SetCompare2(TIM1, 256 - 1);
@@ -178,10 +188,14 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 					TIM_SetCompare3(TIM3, 255);
 				}
 				vTaskDelay(100);
-				detect_x_Tremor();
+				//detect_x_Tremor();
+				//send_Tremor_Warning();
 		}
-        else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] >= 3000 && ADC1ConvertedVoltage[0] - 2305 > ADC1ConvertedVoltage[1] - 2362 && ADC1ConvertedVoltage[0] -2305 > 2362 - ADC1ConvertedVoltage[1]){  //left(3000~4095)
-                //sprintf(buff, "left");
+        else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] >= 3000 && ADC1ConvertedVoltage[0] - 2278 > ADC1ConvertedVoltage[1] - 2335 && ADC1ConvertedVoltage[0] -2229 > 2335 - ADC1ConvertedVoltage[1]){  //left(3000~4095)
+                Joy_dir = 3;
+                //detect_y_Tremor();
+                //send_Tremor_Warning();
+                //sprintf(buff, "left\n\r");
                 //Usart3_Printf(buff); // send string to USART3
                 TIM_SetCompare1(TIM1, 256 - 1);
 				TIM_SetCompare2(TIM1, 256 - 1);
@@ -206,10 +220,14 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 				    TIM_SetCompare4(TIM3, 255);
 		        }
 		        vTaskDelay(100);
-				detect_y_Tremor();
+		        //detect_y_Tremor();
+		        //send_Tremor_Warning();
 		}
-        else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] <= 1500 && 2305 - ADC1ConvertedVoltage[0] > 2362 - ADC1ConvertedVoltage[1] && 2305 - ADC1ConvertedVoltage[0] > ADC1ConvertedVoltage[1] - 2362){  //right(1500~0)
-                //sprintf(buff, "right");
+        else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] <= 1500 && 2278 - ADC1ConvertedVoltage[0] > 2408 - ADC1ConvertedVoltage[1] && 2278 - ADC1ConvertedVoltage[0] > ADC1ConvertedVoltage[1] - 2408){  //right(1500~0)
+                Joy_dir = 4;
+                //detect_y_Tremor();
+                //send_Tremor_Warning();
+                //sprintf(buff, "right\n\r");
                 //Usart3_Printf(buff); // send string to USART3
                 TIM_SetCompare1(TIM1, 256 - 1);
 				TIM_SetCompare2(TIM1, 256 - 1);
@@ -234,25 +252,26 @@ void parse_Joystick_dir(void *p) //unsigned uint16_t Joystick_cmd
 					TIM_SetCompare3(TIM3, 255);
 				}
 				vTaskDelay(100);
-				detect_y_Tremor();
+				//detect_y_Tremor();
+				//send_Tremor_Warning();
 		}
 		/*Detect the tremor and send a warning to android*/
-		/*else if(((ADC1ConvertedVoltage[0] <= 2200 && ADC1ConvertedVoltage[0] >= 1975) || (ADC1ConvertedVoltage[0] >= 2350 && ADC1ConvertedVoltage[0] <= 2555)) || 
+		/*if(((ADC1ConvertedVoltage[0] <= 2200 && ADC1ConvertedVoltage[0] >= 1975) || (ADC1ConvertedVoltage[0] >= 2350 && ADC1ConvertedVoltage[0] <= 2555)) || 
 	            ((ADC1ConvertedVoltage[1] <= 2335 && ADC1ConvertedVoltage[1] >= 2239) || (ADC1ConvertedVoltage[1] >= 2380 && ADC1ConvertedVoltage[1] <= 2480))){
-			tremor_count ++;
-		    if(tremor_count > 20){
-		    	char w;
-		    	while(USART_GetFlagStatus(USARTy, USART_FLAG_TXE) == RESET);
-		    	USART_SendData(USARTy, 'w'); //send a warning of tremor to android
+			tremor_count ++;*/
+		    /*if(tremor_count > 1){
+		    	
+		    	while(USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET);
+		    	USART_SendData(USART3, "w"); //send a warning of tremor to android
 		    	tremor_count = 0;
 		    	vTaskDelay(1);
 		    }
-		} */
+		}*/
 		else{
 		}
-		send_Tremor_Warning();
  }
 }
+
 
 void detect_x_Tremor(){
 	if((ADC1ConvertedVoltage[0] <= 2200 && ADC1ConvertedVoltage[0] >= 1975) || (ADC1ConvertedVoltage[0] >= 2350 && ADC1ConvertedVoltage[0] <= 2555))
@@ -264,11 +283,39 @@ void detect_y_Tremor(){
 		tremor_count ++;
 }
 
-void send_Tremor_Warning(){
-	if(tremor_count > 20){
-			while(USART_GetFlagStatus(USARTy, USART_FLAG_TXE) == RESET);
-			USART_SendData(USARTy, 'w');
-			tremor_count = 0;
-			vTaskDelay(1);
+void send_Tremor_Warning(void *pvParameters){
+	//while(tremor_count > 1){
+    while(1){
+		//while(USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET);
+		//sprintf(buff, "tremor_count = %d\n\r", tremor_count);
+		//Usart3_Printf(buff);
+		/*switch(Joy_dir)
+		{
+			case 1:
+			    detect_x_Tremor();
+			    break;
+			case 2:
+			    detect_x_Tremor();
+			    break;
+			case 3:
+			    detect_y_Tremor();
+			    break;
+			case 4:
+			    detect_y_Tremor();
+			    break;
+		}*/
+			    if(Joy_dir == 1)
+			    	detect_x_Tremor();
+			    if(Joy_dir == 2)
+			    	detect_x_Tremor();
+			    if(Joy_dir == 3)
+			    	detect_y_Tremor();
+			    if(Joy_dir == 4)
+			    	detect_y_Tremor();
+		if(tremor_count > 1){
+			printf("%d\n\r", tremor_count);
+		    //tremor_count = 0;
+		    vTaskDelay(1);
 		}
+}
 }
