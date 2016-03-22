@@ -73,16 +73,26 @@ int main(void) {
     char buff_x [] = "";
     char buff_y [] = "";
     char buff_w [] = "";
-    char buf[20];
+    char buff_ax [] = "";
+    char buff_ay [] = "";
+    char buff_az [] = "";
+    char buf [] = "";
     int Working_Time = 50000;
     int Work_Count = 0;
 
+    float ADCMaxVal = 4095;
+    float mVMaxVal = 5000;
+    float supplyMidPointmV = 2950/2;
+    float mVperg = 295;
+    float mVPerADC = mVMaxVal / ADCMaxVal;
+    
     /*init.*/
 		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 		init_USART3(9600);
 
         //init_linear_actuator();
-        init_ADC();
+        //init_ADC1();
+        init_ADC1();
         ADC_SoftwareStartConv(ADC1);
         init_Timer();
         init_Wheels();
@@ -90,12 +100,18 @@ int main(void) {
 //when running while(1), it'll stuck in the while loop instead of running FreeRTOS's task
         /*while (1)
         {
-            sprintf(buff_x, "ADC_x: %d\n\r", ADC1ConvertedVoltage[0]);
-            Usart3_Printf(buff_x); // send string to USART3
-            sprintf(buff_y, "ADC_y: %d\n\r", ADC1ConvertedVoltage[1]);
-            Usart3_Printf(buff_y);
-            for(i=0; i<3000000; i++); // delay
-        }*/
+          sprintf(buff_x, "ACC_x: %d\n\r",ADC1ConvertedVoltage[0]);
+          Usart3_Printf(buff_x); // send string to USART3
+          sprintf(buff_y, "ADC_y: %f\n\r", ADC1ConvertedVoltage[1]);
+          Usart3_Printf(buff_y);
+          sprintf(buff_ax, "ADC_ax: %f\n\r", ADC1ConvertedVoltage[2]);
+          Usart3_Printf(buff_ax);
+          sprintf(buff_ay, "ADC_ay: %d\n\r", ADC1ConvertedVoltage[3]);
+          Usart3_Printf(buff_ay);
+          sprintf(buff_az, "ADC_az: %d\n\r", ADC1ConvertedVoltage[4]);
+          Usart3_Printf(buff_az);
+          for(i=0; i<3000000; i++); // delay
+        }
         /*unit testing.*/
         /*if(unit_tests_task()){ //unit tests not pass.
            GPIO_WriteBit(GPIOD,GPIO_Pin_14,SET); 
@@ -113,6 +129,7 @@ int main(void) {
         //ret &= xTaskCreate(receive_task, "receive command task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 3, NULL);
         //ret &= xTaskCreate(send_data_task, "send data task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
         ret = xTaskCreate(parse_Joystick_dir, ( signed portCHAR * ) "parse Joystick direction", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+        ret = xTaskCreate(send_data, (signed portCHAR *) "send data", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
         //ret &= xTaskCreate(send_Tremor_Warning, (signed portCHAR *) "send_Tremor_Warning", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 		//ret &= xTaskCreate(send_out_task, "send out information task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		//if (ret == pdTRUE) {
