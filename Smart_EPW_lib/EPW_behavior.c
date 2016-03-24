@@ -12,6 +12,8 @@
 #define PID_ADJUST 1
 #define RECORD_SIZE 750
 char w;
+char buff_JOY_x [] = "";
+char buff_JOY_y [] = "";
 char buff_ACC_x [] = "";
 char buff_ACC_y [] = "";
 char buff_ACC_z [] = "";
@@ -351,13 +353,26 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 void send_data(){
 	while(1)
 	{
+		//sprintf(Data_Head, "a");
+		if(Receive_data == 78)
+		{
+		Usart3_Printf("a");
+		sprintf(buff_JOY_x, "JOY_x: %d\n\r", ADC1ConvertedVoltage[0]);
+		Usart3_Printf(buff_JOY_x);
+		Usart3_Printf("b");
+		sprintf(buff_JOY_y, "JOY_y: %d\n\r", ADC1ConvertedVoltage[1]);
+		Usart3_Printf(buff_JOY_y);
+		Usart3_Printf("c");
 		sprintf(buff_ACC_x, "ACC_x: %d\n\r", ADC1ConvertedVoltage[2]);
 		Usart3_Printf(buff_ACC_x); // send string to USART3
+		Usart3_Printf("d");
 		sprintf(buff_ACC_y, "ACC_y: %d\n\r", ADC1ConvertedVoltage[3]);
 		Usart3_Printf(buff_ACC_y);
+		Usart3_Printf("e");
 		sprintf(buff_ACC_z, "ACC_z: %d\n\r", ADC1ConvertedVoltage[4]);
 		Usart3_Printf(buff_ACC_z);
         vTaskDelay(1000);
+    }
 	}	
 }
 

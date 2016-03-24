@@ -23,6 +23,7 @@
 //__IO uint16_t ADC1ConvertedVoltage[2];
 int16_t ADC1ConvertedVoltage[5]; //or array? /*Joystick's ADC*/
 int16_t ADC2ConvertedVoltage[3]; /*Accelerometer's ADC*/
+int16_t Data_Head[5];
 int16_t tremor_count;
 int16_t Joy_dir;
 

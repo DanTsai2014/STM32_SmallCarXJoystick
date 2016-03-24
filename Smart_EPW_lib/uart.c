@@ -139,16 +139,16 @@ void USART3_IRQHandler(void){
 		if( USART_GetITStatus(USART3, USART_IT_RXNE) ){
 			static uint8_t cnt = 0; // this counter is used to determine the uart receive string length
 
-			Receive_data = USART3->DR; // the character from the USART3 data register is saved in t
+			Receive_data = USART3->DR; // the character from the USART3 data register is saved in Receive_data
 
-			if( cnt < MAX_STRLEN){ 
+			/*if( cnt < MAX_STRLEN){ 
 					received_string[cnt] = Receive_data;
                     
                     if(cnt>=2){
-                        /*start determine the period of command.*/
+                        //start determine the period of command.
                         if(received_string[cnt-2]=='e' && received_string[cnt-1]=='n' && received_string[cnt]=='d'){
-                            Receive_String_Ready = 1; /*Ready to parse the command */
-                            cnt=0; /*restart to accept next stream message.*/
+                            Receive_String_Ready = 1; //Ready to parse the command 
+                            cnt=0; //restart to accept next stream message.
                         }
                         else{
                             cnt++;
@@ -161,7 +161,7 @@ void USART3_IRQHandler(void){
 					Receive_String_Ready=0;
 					cnt = 0;  
 					//USART_puts(USART3, received_string);
-			}
+			}*/
 
 		}
 }
