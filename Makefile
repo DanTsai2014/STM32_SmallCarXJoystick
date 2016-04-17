@@ -76,6 +76,8 @@ SRC+=example.c
 SRC+=EPW_behavior.c
 SRC+=uart.c
 SRC+=PWM.c
+SRC+=MPU6050.c
+SRC+=delay.c
 
 
 # FreeRTOS Source Files

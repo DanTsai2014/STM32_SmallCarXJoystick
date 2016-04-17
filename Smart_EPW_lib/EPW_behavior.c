@@ -6,17 +6,35 @@
 #include "stm32f4xx_usart.h"
 #include "uart.h"
 #include "PWM.h"
+#include "MPU6050.h"
 
 #define B_phase 1
 #define NEURAL_IDENTIFIER 1
 #define PID_ADJUST 1
 #define RECORD_SIZE 750
 char w;
+
 char buff_JOY_x [] = "";
 char buff_JOY_y [] = "";
+char buff_JOY_xx [] = "";
+char buff_JOY_yy [] = "";
 char buff_ACC_x [] = "";
 char buff_ACC_y [] = "";
 char buff_ACC_z [] = "";
+char buff_acc_x_1 [] = "";
+char buff_acc_y_1 [] = "";
+char buff_acc_z_1 [] = "";
+char buff_ang_x_1 [] = "";
+char buff_ang_y_1 [] = "";
+char buff_ang_z_1 [] = "";
+char buff_acc_x_2 [] = "";
+char buff_acc_y_2 [] = "";
+char buff_acc_z_2 [] = "";
+char buff_ang_x_2 [] = "";
+char buff_ang_y_2 [] = "";
+char buff_ang_z_2 [] = "";
+s16 accgyo_1[6]={0};
+s16 accgyo_2[6]={0};
 
 /*============================================================================*/
 /*============================================================================*
@@ -185,6 +203,8 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 	{ //2305: 靜止x軸平均值, 2362: 靜止y軸平均值
 	if(ADC1ConvertedVoltage[1] >= 3000 && ADC1ConvertedVoltage[1] - 2371 > ADC1ConvertedVoltage[0] - 2278 && ADC1ConvertedVoltage[1] - 2371 > 2278 - ADC1ConvertedVoltage[0]){ //forward(3000~4095)
 		Joy_dir = 1;
+		Joystick_x_Filter = 2305; //x stop
+		Joystick_y_Filter = ADC1ConvertedVoltage[1];
 		//detect_x_Tremor();
 		//send_Tremor_Warning();
 		//if (data_sending != 1) /*&& car_state == CAR_STATE_IDLE) // Do not control the wheelchair when sending data with usart!
@@ -222,6 +242,8 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 
 		else if(ADC1ConvertedVoltage[0] < 3000 && ADC1ConvertedVoltage[1] < 3000 && ADC1ConvertedVoltage[0] > 1500 && ADC1ConvertedVoltage[1] > 1500){  //stop
 			Joy_dir = 0;
+			Joystick_x_Filter = 2305;
+			Joystick_y_Filter = 2362;
 				//car_state = CAR_STATE_STOPPING;
 			//sprintf(buff, "stop\n\r");
 			//send_Tremor_Warning();
@@ -239,6 +261,8 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 		}
 		else if(/*data_sending != 1 && */ADC1ConvertedVoltage[1] <= 1500 && 2371 - ADC1ConvertedVoltage[1] > 2235 - ADC1ConvertedVoltage[0] && 2371 - ADC1ConvertedVoltage[1] > ADC1ConvertedVoltage[0] - 2235){  //backward(1500~0)
 				Joy_dir = 2;
+				Joystick_x_Filter = 2305;
+				Joystick_y_Filter = ADC1ConvertedVoltage[1];
 				//detect_x_Tremor();
 				//send_Tremor_Warning();
 				//sprintf(buff, "backward\n\r");
@@ -271,6 +295,8 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 		}
         else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] >= 3000 && ADC1ConvertedVoltage[0] - 2278 > ADC1ConvertedVoltage[1] - 2335 && ADC1ConvertedVoltage[0] -2229 > 2335 - ADC1ConvertedVoltage[1]){  //left(3000~4095)
                 Joy_dir = 3;
+                Joystick_x_Filter = ADC1ConvertedVoltage[0];
+                Joystick_y_Filter = 2362;
                 //detect_y_Tremor();
                 //send_Tremor_Warning();
                 //sprintf(buff, "left\n\r");
@@ -303,6 +329,8 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 		}
         else if(/*data_sending != 1 && */ADC1ConvertedVoltage[0] <= 1500 && 2278 - ADC1ConvertedVoltage[0] > 2408 - ADC1ConvertedVoltage[1] && 2278 - ADC1ConvertedVoltage[0] > ADC1ConvertedVoltage[1] - 2408){  //right(1500~0)
                 Joy_dir = 4;
+                Joystick_x_Filter = ADC1ConvertedVoltage[0];
+                Joystick_y_Filter = 2362;
                 //detect_y_Tremor();
                 //send_Tremor_Warning();
                 //sprintf(buff, "right\n\r");
@@ -350,30 +378,122 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
  }
 }
 
-void send_data(){
+void send_Joystick_data(){
 	while(1)
 	{
-		//sprintf(Data_Head, "a");
-		if(Receive_data == 78)
-		{
-		Usart3_Printf("a");
+		//if(Receive_data == 78)
+		//{
+/*
+		//USART_puts(USART3, "a\n\r");
+		USART_puts(USART3,"JOY_x: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[0]);
+	    USART_puts(USART3, "\n\r");
+
+	    //USART_puts(USART3, "b\n\r");
+		USART_puts(USART3,"JOY_y: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[1]);
+	    USART_puts(USART3, "\n\r");
+
+	    //USART_puts(USART3, "c\n\r");
+		USART_puts(USART3,"ACC_x: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[2]);
+	    USART_puts(USART3, "\n\r");
+
+	    //USART_puts(USART3, "d\n\r");
+		USART_puts(USART3,"ACC_y: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[3]);
+	    USART_puts(USART3, "\n\r");
+
+	    //USART_puts(USART3, "e\n\r");
+		USART_puts(USART3,"ACC_z: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[4]);
+	    USART_puts(USART3, "\n\r");*/
+        /*MPU6050_GetRawAccelGyro(AccelGyro);
+        
+	    USART_putd(USART3, AccelGyro[0]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_putd(USART3, AccelGyro[1]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_putd(USART3, AccelGyro[2]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_putd(USART3, AccelGyro[4]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_putd(USART3, AccelGyro[5]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_putd(USART3, AccelGyro[6]);
+	    USART_puts(USART3, "\n\r");*/
+
+
+
+		//Usart3_Printf("a");
 		sprintf(buff_JOY_x, "JOY_x: %d\n\r", ADC1ConvertedVoltage[0]);
 		Usart3_Printf(buff_JOY_x);
-		Usart3_Printf("b");
+
+		//Usart3_Printf("b");
 		sprintf(buff_JOY_y, "JOY_y: %d\n\r", ADC1ConvertedVoltage[1]);
 		Usart3_Printf(buff_JOY_y);
-		Usart3_Printf("c");
+
+		sprintf(buff_JOY_xx, "JOY_xx: %d\n\r",Joystick_x_Filter);
+		Usart3_Printf(buff_JOY_xx);
+
+		sprintf(buff_JOY_yy, "JOY_yy: %d\n\r",Joystick_y_Filter);
+		Usart3_Printf(buff_JOY_yy);
+/*
+		//Usart3_Printf("c");
 		sprintf(buff_ACC_x, "ACC_x: %d\n\r", ADC1ConvertedVoltage[2]);
 		Usart3_Printf(buff_ACC_x); // send string to USART3
-		Usart3_Printf("d");
+
+		//Usart3_Printf("d");
 		sprintf(buff_ACC_y, "ACC_y: %d\n\r", ADC1ConvertedVoltage[3]);
 		Usart3_Printf(buff_ACC_y);
-		Usart3_Printf("e");
+
+		//Usart3_Printf("e");
 		sprintf(buff_ACC_z, "ACC_z: %d\n\r", ADC1ConvertedVoltage[4]);
-		Usart3_Printf(buff_ACC_z);
+		Usart3_Printf(buff_ACC_z);*/
+        vTaskDelay(1000);
+    //}
+	}	
+}
+
+void send_MPU6050_data(){
+	while(1){
+		MPU6050_GetRawAccelGyro_1(accgyo_1);
+        sprintf(buff_acc_x_1, "ACC1_x: %d\n\r", accgyo_1[0]);
+        Usart3_Printf(buff_acc_x_1);
+        sprintf(buff_acc_y_1, "ACC1_y: %d\n\r", accgyo_1[1]);
+        Usart3_Printf(buff_acc_y_1);
+        sprintf(buff_acc_z_1, "ACC1_z: %d\n\r", accgyo_1[2]);
+        Usart3_Printf(buff_acc_z_1);
+
+        sprintf(buff_ang_x_1, "ANG1_x: %d\n\r", accgyo_1[3]);
+        Usart3_Printf(buff_ang_x_1);
+        sprintf(buff_ang_y_1, "ANG1_y: %d\n\r", accgyo_1[4]);
+        Usart3_Printf(buff_ang_y_1);
+        sprintf(buff_ang_z_1, "ANG1_z: %d\n\r", accgyo_1[5]);
+        Usart3_Printf(buff_ang_z_1);
+
+        MPU6050_GetRawAccelGyro_2(accgyo_2);
+        sprintf(buff_acc_x_2, "ACC2_x: %d\n\r", accgyo_2[0]);
+        Usart3_Printf(buff_acc_x_2);
+        sprintf(buff_acc_y_2, "ACC2_y: %d\n\r", accgyo_2[1]);
+        Usart3_Printf(buff_acc_y_2);
+        sprintf(buff_acc_z_2, "ACC2_z: %d\n\r", accgyo_2[2]);
+        Usart3_Printf(buff_acc_z_2);
+
+        sprintf(buff_ang_x_2, "ANG2_x: %d\n\r", accgyo_2[3]);
+        Usart3_Printf(buff_ang_x_2);
+        sprintf(buff_ang_y_2, "ANG2_y: %d\n\r", accgyo_2[4]);
+        Usart3_Printf(buff_ang_y_2);
+        sprintf(buff_ang_z_2, "ANG2_z: %d\n\r", accgyo_2[5]);
+        Usart3_Printf(buff_ang_z_2);
+
         vTaskDelay(1000);
     }
-	}	
 }
 
 void detect_x_Tremor(){
