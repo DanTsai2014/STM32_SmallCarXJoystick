@@ -242,8 +242,8 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 
 		else if(ADC1ConvertedVoltage[0] < 3000 && ADC1ConvertedVoltage[1] < 3000 && ADC1ConvertedVoltage[0] > 1500 && ADC1ConvertedVoltage[1] > 1500){  //stop
 			Joy_dir = 0;
-			Joystick_x_Filter = 2305;
-			Joystick_y_Filter = 2362;
+			Joystick_x_Filter = ADC1ConvertedVoltage[0];
+			Joystick_y_Filter = ADC1ConvertedVoltage[1];
 				//car_state = CAR_STATE_STOPPING;
 			//sprintf(buff, "stop\n\r");
 			//send_Tremor_Warning();
@@ -431,17 +431,17 @@ void send_Joystick_data(){
 
 
 		//Usart3_Printf("a");
-		sprintf(buff_JOY_x, "JOY_x: %d\n\r", ADC1ConvertedVoltage[0]);
+		sprintf(buff_JOY_x, "%d,", ADC1ConvertedVoltage[0]);//JOY_x: 
 		Usart3_Printf(buff_JOY_x);
 
 		//Usart3_Printf("b");
-		sprintf(buff_JOY_y, "JOY_y: %d\n\r", ADC1ConvertedVoltage[1]);
+		sprintf(buff_JOY_y, "%d,", ADC1ConvertedVoltage[1]);//JOY_y: 
 		Usart3_Printf(buff_JOY_y);
 
-		sprintf(buff_JOY_xx, "JOY_xx: %d\n\r",Joystick_x_Filter);
+		sprintf(buff_JOY_xx, "%d,",Joystick_x_Filter);//JOY_xx: 
 		Usart3_Printf(buff_JOY_xx);
 
-		sprintf(buff_JOY_yy, "JOY_yy: %d\n\r",Joystick_y_Filter);
+		sprintf(buff_JOY_yy, "%d,",Joystick_y_Filter);//JOY_yy: 
 		Usart3_Printf(buff_JOY_yy);
 /*
 		//Usart3_Printf("c");
@@ -462,34 +462,48 @@ void send_Joystick_data(){
 
 void send_MPU6050_data(){
 	while(1){
+		USART_puts(USART3, "DATA,TIME,,");
+
+		sprintf(buff_JOY_x, "%d,", ADC1ConvertedVoltage[0]);//JOY_x: 
+		Usart3_Printf(buff_JOY_x);
+
+		//Usart3_Printf("b");
+		sprintf(buff_JOY_y, "%d,", ADC1ConvertedVoltage[1]);//JOY_y: 
+		Usart3_Printf(buff_JOY_y);
+
+		sprintf(buff_JOY_xx, "%d,",Joystick_x_Filter);//JOY_xx: 
+		Usart3_Printf(buff_JOY_xx);
+
+		sprintf(buff_JOY_yy, "%d,",Joystick_y_Filter);//JOY_yy: 
+		Usart3_Printf(buff_JOY_yy);
 		MPU6050_GetRawAccelGyro_1(accgyo_1);
-        sprintf(buff_acc_x_1, "ACC1_x: %d\n\r", accgyo_1[0]);
+        sprintf(buff_acc_x_1, "%d,", accgyo_1[0]);//ACC1_x: 
         Usart3_Printf(buff_acc_x_1);
-        sprintf(buff_acc_y_1, "ACC1_y: %d\n\r", accgyo_1[1]);
+        sprintf(buff_acc_y_1, "%d,", accgyo_1[1]);//ACC1_y: 
         Usart3_Printf(buff_acc_y_1);
-        sprintf(buff_acc_z_1, "ACC1_z: %d\n\r", accgyo_1[2]);
+        sprintf(buff_acc_z_1, "%d,", accgyo_1[2]);//ACC1_z: 
         Usart3_Printf(buff_acc_z_1);
 
-        sprintf(buff_ang_x_1, "ANG1_x: %d\n\r", accgyo_1[3]);
+        sprintf(buff_ang_x_1, "%d,", accgyo_1[3]);//ANG1_x: 
         Usart3_Printf(buff_ang_x_1);
-        sprintf(buff_ang_y_1, "ANG1_y: %d\n\r", accgyo_1[4]);
+        sprintf(buff_ang_y_1, "%d,", accgyo_1[4]);//ANG1_y: 
         Usart3_Printf(buff_ang_y_1);
-        sprintf(buff_ang_z_1, "ANG1_z: %d\n\r", accgyo_1[5]);
+        sprintf(buff_ang_z_1, "%d,", accgyo_1[5]);//ANG1_z: 
         Usart3_Printf(buff_ang_z_1);
 
         MPU6050_GetRawAccelGyro_2(accgyo_2);
-        sprintf(buff_acc_x_2, "ACC2_x: %d\n\r", accgyo_2[0]);
+        sprintf(buff_acc_x_2, "%d,", accgyo_2[0]);//ACC2_x: 
         Usart3_Printf(buff_acc_x_2);
-        sprintf(buff_acc_y_2, "ACC2_y: %d\n\r", accgyo_2[1]);
+        sprintf(buff_acc_y_2, "%d,", accgyo_2[1]);//ACC2_y: 
         Usart3_Printf(buff_acc_y_2);
-        sprintf(buff_acc_z_2, "ACC2_z: %d\n\r", accgyo_2[2]);
+        sprintf(buff_acc_z_2, "%d,", accgyo_2[2]);//ACC2_z: 
         Usart3_Printf(buff_acc_z_2);
 
-        sprintf(buff_ang_x_2, "ANG2_x: %d\n\r", accgyo_2[3]);
+        sprintf(buff_ang_x_2, "%d,", accgyo_2[3]);//ANG2_x: 
         Usart3_Printf(buff_ang_x_2);
-        sprintf(buff_ang_y_2, "ANG2_y: %d\n\r", accgyo_2[4]);
+        sprintf(buff_ang_y_2, "%d,", accgyo_2[4]);//ANG2_y: 
         Usart3_Printf(buff_ang_y_2);
-        sprintf(buff_ang_z_2, "ANG2_z: %d\n\r", accgyo_2[5]);
+        sprintf(buff_ang_z_2, "%d\r\n", accgyo_2[5]);//ANG2_z: 
         Usart3_Printf(buff_ang_z_2);
 
         vTaskDelay(1000);
