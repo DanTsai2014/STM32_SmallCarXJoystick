@@ -22,7 +22,7 @@
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F4xx_USART_H
-#define __STM32F4xx_USART_H
+#define __STM32F4xx_USART_H 
 
 #ifdef __cplusplus
  extern "C" {

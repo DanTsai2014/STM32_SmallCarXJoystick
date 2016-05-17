@@ -289,7 +289,7 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 					TIM_SetCompare1(TIM3, 100);
 					TIM_SetCompare4(TIM3, 100);
 				}
-				else if(ADC1ConvertedVoltage[0] > 3365 && ADC1ConvertedVoltage[1] <= 3730){ //mid_speed
+				else if(ADC1ConvertedVoltage[0] > 3365 && ADC1ConvertedVoltage[0] <= 3730){ //mid_speed
 					TIM_SetCompare1(TIM3, 178);
 					TIM_SetCompare4(TIM3, 178);
 				}
@@ -321,7 +321,7 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 					TIM_SetCompare2(TIM3, 100);
 					TIM_SetCompare3(TIM3, 100);
 				}
-				else if(ADC1ConvertedVoltage[0] > 500 && ADC1ConvertedVoltage[1] <= 1000){
+				else if(ADC1ConvertedVoltage[0] > 500 && ADC1ConvertedVoltage[0] <= 1000){
 					TIM_SetCompare2(TIM3, 178);
 					TIM_SetCompare3(TIM3, 178);
 				}
@@ -353,26 +353,53 @@ void parse_Joystick_dir(void *pvParameters) //unsigned uint16_t Joystick_cmd
 void send_data(){
 	while(1)
 	{
-		//sprintf(Data_Head, "a");
-		if(Receive_data == 78)
-		{
-		Usart3_Printf("a");
+		//if(Receive_data == 78)
+		//{
+		USART_puts(USART3, "a\n\r");
+		USART_puts(USART3,"JOY_x: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[0]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_puts(USART3, "b\n\r");
+		USART_puts(USART3,"JOY_y: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[1]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_puts(USART3, "c\n\r");
+		USART_puts(USART3,"ACC_x: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[2]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_puts(USART3, "d\n\r");
+		USART_puts(USART3,"ACC_y: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[3]);
+	    USART_puts(USART3, "\n\r");
+
+	    USART_puts(USART3, "e\n\r");
+		USART_puts(USART3,"ACC_z: ");
+	    USART_putd(USART3, ADC1ConvertedVoltage[4]);
+	    USART_puts(USART3, "\n\r");
+		/*Usart3_Printf("a");
 		sprintf(buff_JOY_x, "JOY_x: %d\n\r", ADC1ConvertedVoltage[0]);
 		Usart3_Printf(buff_JOY_x);
+
 		Usart3_Printf("b");
 		sprintf(buff_JOY_y, "JOY_y: %d\n\r", ADC1ConvertedVoltage[1]);
 		Usart3_Printf(buff_JOY_y);
+
 		Usart3_Printf("c");
 		sprintf(buff_ACC_x, "ACC_x: %d\n\r", ADC1ConvertedVoltage[2]);
 		Usart3_Printf(buff_ACC_x); // send string to USART3
+
 		Usart3_Printf("d");
 		sprintf(buff_ACC_y, "ACC_y: %d\n\r", ADC1ConvertedVoltage[3]);
 		Usart3_Printf(buff_ACC_y);
+
 		Usart3_Printf("e");
 		sprintf(buff_ACC_z, "ACC_z: %d\n\r", ADC1ConvertedVoltage[4]);
-		Usart3_Printf(buff_ACC_z);
+		Usart3_Printf(buff_ACC_z);*/
         vTaskDelay(1000);
-    }
+    //}
 	}	
 }
 
