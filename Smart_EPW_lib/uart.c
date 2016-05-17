@@ -160,7 +160,7 @@ void USART3_IRQHandler(void){
 	}
 }
 
-void USART_puts(USART_TypeDef* USARTx, volatile uint8_t *s)
+void USART_puts(USART_TypeDef* USARTx, volatile uint8_t *s) //uint8_t = unsigned char
 {
 	while(*s){
 		// wait until data register is empty
@@ -172,12 +172,12 @@ void USART_puts(USART_TypeDef* USARTx, volatile uint8_t *s)
 	}
 }
 
-void USART_putd(USART_TypeDef* USARTx, uint32_t number)
+void USART_putd(USART_TypeDef* USARTx, uint32_t number) //uint32_t = unsigned int
 {
-	static uint32_t temp;
-	static uint8_t cnt = 0;
-	volatile uint8_t tmp_num[10];
-	volatile uint8_t num[10];
+	static uint32_t temp; //uint32_t
+	static uint8_t cnt = 0; //uint8_t = unsigned char
+	volatile uint8_t tmp_num[10]; //uint8_t
+	volatile uint8_t num[10]; //uint8_t
 
 	if(number == 0){
 		tmp_num[cnt++] = '0';

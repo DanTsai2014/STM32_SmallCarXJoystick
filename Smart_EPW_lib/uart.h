@@ -22,8 +22,12 @@ volatile unsigned char received_string[MAX_STRLEN]; // this will hold the reciev
 
 extern void init_USART3(uint32_t baurate);
 extern void USART3_IRQHandler(void);
+
 extern void USART_puts(USART_TypeDef* USARTx, volatile uint8_t *s);
 extern void USART_putd(USART_TypeDef* USARTx, uint32_t number);
+
+extern void USART_puts(USART_TypeDef* USARTx, volatile uint8_t *s); //uint8_t
+extern void USART_putd(USART_TypeDef* USARTx, uint32_t number); //uint32_t
 
 
 #endif /* __UART_H__ */
